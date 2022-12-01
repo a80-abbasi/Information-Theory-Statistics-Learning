@@ -1,0 +1,502 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb} 
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{extarrows}
+\usepackage{relsize}
+\usepackage{geometry}
+
+\numberwithin{equation}{section}
+
+% \DeclareMathOperator{\EX}{\mathbb{E}}% expected value
+\newcommand{\EX}[2][]{\mathbb{E}_{#1}\left[#2\right]}% expected value
+\newcommand{\prob}[1]{\mathbb{P}\left[#1\right]}% expected value
+
+\DeclareMathOperator*{\trace}{trace}
+\DeclareMathOperator*{\rank}{rank}
+\newcommand{\norm}[2][]{\Vert #2\Vert_{#1}}
+\newcommand{\hermit}{^H}
+\newcommand{\transpose}{^T}
+\newcommand{\inverse}{^{-1}}
+\newcommand{\at}[2][]{#1|_{#2}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\Cov}{Cov}
+
+\title{Information Theory, Statistics, and Learning\\Assignment 1}
+\author{Ali Abbasi\\ 98105879}
+\begin{document}
+\maketitle
+\tableofcontents
+\pagebreak
+
+\section{Contiguity!}
+\subsection{}
+Proof by contradiction:
+Assume that sum of type 1 and type 2 errors converges to zero as $n\rightarrow\infty$ and \(\mathbb{P} \triangleleft \mathbb{Q} \).
+We have:
+\begin{gather}
+P_n(Z=1) + Q_n(Z=0) \xrightarrow{n \to \infty} 0\\
+\xRightarrow{P_n \text{ and } Q_n \text{ are positive}}
+\begin{cases}
+P_n(Z=1) \xrightarrow{n \to \infty} 0 \implies P_n(Z=0) \xrightarrow{n \to \infty} 1\\
+Q_n(Z=0) \xrightarrow{n \to \infty} 0
+\end{cases}
+\label{eq:P_n_Z}
+\end{gather}
+Consider sequence of \(\{A_n\}_{n=1}^\infty\) such that \(\forall n:\ A_n\) is equal to the event \(Z=0\):
+\begin{gather}
+Q_n(A_n) \xrightarrow{n \to \infty} 0\\
+\xRightarrow{\mathbb{P} \triangleleft \mathbb{Q}} P_n(A_n) \xrightarrow{n \to \infty} 0\\
+\implies P_n(Z=0) \xrightarrow{n \to \infty} 0
+\end{gather}
+which is clearly in contradiction with what we derived in \eqref{eq:P_n_Z}.\\
+The same argument can be used to show that when \(\mathbb{Q} \triangleleft \mathbb{P}\) then sum of type 1 and type 2 errors cannot converge to zero as $n\rightarrow\infty$
+(in that case, we use the event \(Z=1\) instead of \(Z=0\) as \( A_n\) in the above argument).
+\subsection{}
+Proof by contradiction: Suppose \(\mathbb{P} \triangleleft \mathbb{Q}\) does not hold. Then there exists a sequence of \(\{A_n\}_{n=1}^\infty\) such that \(Q_n(A_n) \xrightarrow{n \to \infty} 0\) and \(P_n(A_n) \xrightarrow{n \to \infty} a < \infty\).\\
+We have:
+\begin{align}
+\norm{L_n}^2 &= \langle L_n, L_n \rangle\\
+&= \EX[Q_n]{L_n^2}\\
+&= \EX[X\sim Q_n]{\frac{P_n(x)^2}{Q_n(x)^2}}\\
+&= \sum_x \frac{P_n(x)^2}{Q_n(x)}\\
+&\ge \sum_{x\in A_n} \frac{P_n(x)^2}{Q_n(x)}
+\end{align}
+Using Cauchy-Schwarz inequality:
+\begin{align}
+\sum_{x\in A_n} \frac{P_n(x)^2}{Q_n(x)} \sum_{x\in A_n} Q_n(x) &\ge \left(\sum_{x\in A_n} P_n(x)\right)^2\\
+\sum_{x\in A_n} \frac{P_n(x)^2}{Q_n(x)} \times Q_n(A_n) &\ge P_n(A_n)^2\\
+\implies \sum_{x\in A_n} \frac{P_n(x)^2}{Q_n(x)} &\ge \frac{P_n(A_n)^2}{Q_n(A_n)}\\
+\implies \norm{L_n}^2 &\ge \sum_{x\in A_n} \frac{P_n(x)^2}{Q_n(x)} \ge \frac{P_n(A_n)^2}{Q_n(A_n)}
+\end{align}
+\begin{align}
+\implies \lim_{n\to\infty} \norm{L_n}^2 \ge \lim_{n\to\infty} \frac{P_n(A_n)^2}{Q_n(A_n)} = \infty
+\end{align}
+Which is in contradiction with our hypothesis. Thus \(\mathbb{P} \triangleleft \mathbb{Q}\) holds.
+
+\section{Large Deviation for Log-Likelihood}
+We want to show that:
+\begin{align}
+\forall x \ge 0, n \in \mathbb{N}:\ \ \prob{\sum_{i=1}^n (Y_i - X_i)\ge nx} \le \exp(-n(\alpha + \frac{x}{2}))
+\end{align}
+Where 
+\begin{align*}
+X_i &= \log \frac{p(r_i)}{q(r_i)}, \quad r_i \stackrel{\textup{i.i.d.}}{\sim} P\\
+Y_i &= \log \frac{p(t_i)}{q(t_i)}, \quad t_i \stackrel{\textup{i.i.d.}}{\sim} Q\\
+\alpha &= -2\log \mathcal{B}(P, Q)
+\end{align*}
+\subsection{}
+We use Chernoff bound to prove it:
+\begin{align}
+\prob{X \ge \epsilon} \le \frac{\EX{\exp(\theta X)}}{\exp(\theta \epsilon)}
+\tag{Chernoff bound}
+\end{align}
+where \(\theta \ge 0\). We have:
+
+\begin{align}
+\prob{\sum_{i=1}^n (Y_i - X_i)\ge nx} &\le \frac{\EX{e^{\theta \sum_{i=1}^n (Y_i - X_i)}}}{e^{\theta nx}}\\
+&= \frac{\prod_{i=1}^n \EX{e^{\theta (Y_i - X_i)}}}{e^{\theta nx}} \label{eq:independent1}\\
+&= \frac{\prod_{i=1}^n \EX[Q]{e^{\theta Y_i}} \EX[P]{e^{-\theta X_i}}}{e^{\theta nx}} \label{eq:independent2}\\
+&= \frac{\EX[Q]{e^{\theta Y_1}}^n \EX[P]{e^{-\theta X_1}}^n}{e^{\theta nx}}\\
+&= \exp\left[-n\left( \theta x - \log \EX[P]{e^{-\theta X_1}} -\log \EX[Q]{e^{\theta Y_1}} \right) \right]\\
+&= \exp\left[-n\left( \theta x - \psi_P(-\theta) - \psi_Q(\theta) \right) \right]
+\end{align}
+Using the fact that \(X\)s and \(Y\)s are independent in \eqref{eq:independent1} and \eqref{eq:independent2}.
+This inequality is true for all \(\theta \ge 0\). So it also holds for the \(\inf\) value of RHS with respect to \(\theta\):
+\begin{align}
+\prob{\sum_{i=1}^n (Y_i - X_i)\ge nx} &\le \inf_\theta \exp\left[-n\left( \theta x - \psi_P(-\theta) - \psi_Q(\theta) \right) \right]\\
+&= \exp\left[-n\times \sup_\theta \left\{ \theta x - \psi_P(-\theta) - \psi_Q(\theta) \right\} \right]\\
+&= \exp\left[ -n F(x) \right]
+\end{align}
+
+\subsection{}
+First we show that \( \psi_P(-\theta) + \psi_Q(\theta) \ge 2\log \mathcal{B}(P, Q)\):
+\begin{align}
+\psi_P(-\theta) + \psi_Q(\theta) &= \log \EX[P]{e^{-\theta X_1}} + \log \EX[Q]{e^{\theta Y_1}}\\
+&=\log \left[\EX[P]{e^{-\theta X_1}} \EX[Q]{e^{\theta Y_1}}\right]\\
+&=\log \left[\EX[P]{(\frac{dP}{dQ})^{-\theta}} \EX[Q]{(\frac{dP}{dQ})^{\theta}}\right]\\
+&=\log \left[\EX[P]{(\frac{dQ}{dP})^{\theta}} \EX[Q]{(\frac{dP}{dQ})^{\theta}}\right]\\
+&= \log \left[ \left(\sum_t p(t)^{1-\theta} q(t)^{\theta}\right) \left(\sum_t p(t)^{\theta} q(t)^{1-\theta}\right) \right] \label{eq:BeforeCauchy}
+\end{align}
+Using Cauchy Schwarz inequality, we have:
+\begin{align}
+\psi_P(-\theta) + \psi_Q(\theta) &\ge \log \left[ \left(\sum_t \sqrt{p(t) q(t)}\right)^2 \right]\\
+&= \log \left[ \mathcal{B}(P, Q) \right]^2\\
+&= 2\log \mathcal{B}(P, Q)
+\end{align}
+So:
+\begin{align}
+-\psi_P(-\theta) - \psi_Q(\theta) &\le -2\log \mathcal{B}(P, Q) = \alpha
+\end{align}
+If we define \(f(\theta) \triangleq -\psi_P(-\theta) - \psi_Q(\theta)\), we show that \(F(0) = f(\frac{1}{2}) = \alpha\):
+\begin{align}
+f(\frac{1}{2}) &= -\psi_P(-\frac{1}{2}) - \psi_Q(\frac{1}{2})\\
+&= -\log \left[ \left(\sum_t p(t)^{\frac{1}{2}} q(t)^{\frac{1}{2}}\right) \left(\sum_t p(t)^{\frac{1}{2}} q(t)^{\frac{1}{2}}\right) \right] & \text{using Eq. (\eqref{eq:BeforeCauchy})}\\
+&= -\log \left[ \mathcal{B}(P, Q) \right]^2\\
+&= -2\log \mathcal{B}(P, Q)\\
+&= \alpha
+\end{align}
+
+\begin{gather}
+\begin{rcases*}
+F(0)
+% = \sup_{\theta\ge 0} \left\{- \psi_P(-\theta) - \psi_Q(\theta) \right\}
+= \sup_{\theta\ge 0} f(\theta) \\
+\forall \theta \ge 0, \quad f(\theta) \le f(\frac{1}{2})
+\end{rcases*} \implies F(0) = f(\frac{1}{2}) = \alpha
+\end{gather}
+
+\subsection{}
+\begin{align}
+F(x) &= \sup_{\theta \ge 0} \{x \theta + f(\theta) \}\\
+&\ge x \theta + f(\theta)\at[\bigg]{\theta = \frac{1}{2}}\\
+&= \frac{x}{2} + F(0)
+\end{align}
+So we have:
+\begin{align}
+\prob{\sum_{i=1}^n (Y_i - X_i)\ge nx} &\le \exp\left[ -n F(x) \right]\\
+&\le \exp\left[ -n \left( \frac{x}{2} + F(0) \right) \right]\\
+&\le \exp\left[ -n \left( \frac{x}{2} + \alpha \right) \right]
+\end{align}
+
+\section{Large Deviation for Erlang Distribution}
+\subsection{}
+We are going to solve this part using moment generating function and Laplace transform!
+We denote moment generating function, of random variable \(X\), its pdf and Laplace transform of its pdf respectively as \(M_X(t)\), \(f_X(x)\) and \(\mathcal{F}_X(s)\).
+We know:
+\begin{align}
+M_X(t) &= \EX{e^{tX}}\\
+&= \int_0^\infty e^{tx} f_X(x) dx\\
+&= \mathcal{F}_X(-t)
+\end{align}
+So we will use Laplace transform and its inverse to convert pdf to moment generating function and vice versa.
+We have:
+\begin{align}
+Y_i &\stackrel{\text{i.i.d.}}{\sim}\exp(\lambda)\\
+X = &\sum_{i=1}^n Y_i \sim \text{Erlang}(n, \lambda)
+\end{align}
+\begin{align}
+M_X(t) &= \EX{e^{tX}}\\
+&= \EX{e^{t\sum_{i=1}^n Y_i}} & \text{i.i.d.}\\
+&= \prod_{i=1}^n \EX{e^{tY_i}}\\
+&= \prod_{i=1}^n M_{Y_i}(t)\\
+&= M_{Y_1}(t)^n
+\end{align}
+\begin{align}
+f_{Y_1} &= \lambda e^{-\lambda x} & \text{for } x \ge 0\\
+&= \lambda e^{-\lambda x}u(x)\\
+\mathcal{F}_{Y_1}(s) &= \lambda \times \frac{1}{s + \lambda}= \frac{\lambda}{s + \lambda}\\
+M_{Y_1}(t) &= \mathcal{F}_{Y_1}(-t) = \frac{\lambda}{-t + \lambda}\\
+\implies M_X(t) &= (\frac{\lambda}{-t + \lambda})^n\\
+\implies \mathcal{F}_X(s) &= \frac{\lambda^n}{(s + \lambda)^n}
+\end{align}
+\begin{align}
+\mathcal{L}^{-1}\left[ \frac{1}{(s + \lambda)^n} \right] = \frac{x^{n-1}}{(n-1)!} e^{-\lambda x}\\
+\implies f_X(x) = \frac{\lambda^n x^{n-1}e^{-\lambda x}}{(n-1)!}
+\end{align}
+
+\subsection{}
+We will use inequality we had in large deviation to prove this part.
+\begin{align}
+X_i &\stackrel{\text{i.i.d.}}{\sim} \exp(1)\\
+\prob{\sum_{i=1}^n X_i \ge n\xi} &\xlongequal{t\ge 0} \prob{t\sum_{i=1}^n X_i \ge tn\xi}\\
+&=\prob{e^{t\sum_{i=1}^n X_i} \ge e^{tn\xi}}\\
+&\le e^{-tn\xi} \EX{e^{tX_1}}^n\\
+&= \exp\left[-n(t\xi - \log M_{X_1}(t)) \right]
+\label{eq:chenoff-bound}
+\end{align} 
+\begin{align}
+\log M_{X_1}(t) &= \log \frac{1}{-t + 1} = -\log (1-t)\\
+\implies \prob{\sum_{i=1}^n X_i \ge n\xi} &\le \exp\left[-n(t\xi + \log (1-t)) \right]
+\end{align}
+Since it holds for all \(t\ge 0\), it also holds for \(t\) that makes RHS infimum:
+\begin{align}
+\prob{\sum_{i=1}^n X_i \ge n\xi} &\le \inf_{t\ge 0} \exp\left[-n(t\xi + \log (1-t)) \right]\\
+&= \exp\left[-n(\sup_{t\ge 0}\{t\xi + \log (1-t)\}) \right]
+\end{align}
+We can find supremum value by taking derivative of it:
+\begin{align}
+\frac{\partial}{\partial t} &\left[ t\xi + \log (1-t) \right] = \xi - \frac{1}{1-t}=0\\
+\implies &t = 1 - \frac{1}{\xi} & (t\ge 0 \implies \xi \ge 1)\\
+\implies &\sup_{t\ge 0}\{t\xi + \log (1-t)\} = \xi - \log \xi - 1
+\end{align}
+\begin{align}
+\implies \prob{\sum_{i=1}^n X_i \ge n\xi} &\le \exp\left[-n(\xi - \log \xi - 1) \right] & \text{for } \xi \ge 1
+\end{align}
+
+\subsection{}
+This part can be proved in a very similar way;
+we only need to multiply inequality in the \(\mathbb{P}\) with a negative \(t\) in order to reverse the inequality.
+\begin{align}
+\prob{\sum_{i=1}^n X_i \le n\xi} &\xlongequal{t\le 0} \prob{t\sum_{i=1}^n X_i \ge tn\xi}\\
+&=\prob{e^{t\sum_{i=1}^n X_i} \ge e^{tn\xi}}\\
+&\quad \vdots \tag*{}\\
+& \le \exp\left[-n(\sup_{t\le 0}\{t\xi + \log (1-t)\}) \right]
+\end{align} 
+Again by taking derivative, we can find supremum value, which yields the same formula for \(t\).
+The only difference is that this time \(\xi\) should be less than 1 in order to make \(t\) negative:
+\begin{align}
+t &= 1 - \frac{1}{\xi} & (t\le 0 \implies \xi \le 1)
+\end{align}
+So we have:
+\begin{align}
+\implies \prob{\sum_{i=1}^n X_i \le n\xi} &\le \exp\left[-n(\xi - \log \xi - 1) \right] & \text{for } \xi \le 1
+\end{align}
+
+\section{Chernoff Deviation}
+We are going to prove the following theorem:
+\begin{align}
+\lim_{n \to \infty} \frac{1}{n}\log \prob{I \neq \hat{I}} = \min_{0\le s \le 1} \log \EX[Q]{(\frac{P(x)}{Q(x)})^s}
+\end{align}
+First we show that LHS \(\le\) RHS:
+\begin{align}
+\prob{I \neq \hat{I}} &= \frac{1}{2}(1 - d_{TV}(P^{\otimes n}, Q^{\otimes n}))\\
+&= \frac{1}{2} \sum_{X^n}\min (P(X^n), Q(X^n))\\
+&\le \sum_{X_1\ldots X_n} P(X_1\ldots X_n)^s Q(X_1\ldots X_n)^{1-s}\\
+&= \sum_{X_1\ldots X_n} \prod_{i=1}^n P(X_i)^s Q(X_i)^{1-s}\\
+&= \prod_{i=1}^n \sum_{X_i} P(X_i)^s Q(X_i)^{1-s}\\
+&= \prod_{i=1}^n \EX[Q]{(\frac{P(x)}{Q(x)})^s}\\
+&= \EX[Q]{(\frac{P(X)}{Q(X)})^s}^n\\
+\implies \frac{1}{n} \log \prob{I \neq \hat{I}} &\le \min_{0\le s \le 1} \log \EX[Q]{(\frac{P(X)}{Q(X)})^s}& \forall s: 0 \le s \le 1
+\label{eq:LHS-le-RHS}
+\end{align}
+
+Now we need to show that LHS \(\ge\) RHS.
+
+We proved Chernoff inequality both in the class and in \eqref{eq:chenoff-bound}:
+\begin{align}
+P\left[ \sum_i X_i \ge n\delta \right] \le \exp \left( -n \{\sup_{\lambda \ge 0} \lambda\delta - \psi_X(\lambda) \} \right)
+\end{align}
+Where \(\psi_X(\lambda) = \log \EX{e^{\lambda X}}\) is the logarithm of the moment generating function of \(X\).\\
+We also proved in the class that for \(n \to \infty\), this bound is tight and we have:
+\begin{align}
+\lim_{n\to \infty}-\frac{1}{n}\log P\left[ \sum_i X_i \ge n\delta \right] = \inf_{R: \EX[R]{X} \ge \delta} D_{KL}(R||P) = \sup_{\lambda \ge 0} \lambda\delta - \psi_X(\lambda)
+\label{eq:tight-chernoff}
+\end{align}
+
+(we are not going to prove it here again)
+
+We will use this bound to prove what the problem asks for.
+
+\begin{align}
+\prob{I \neq \hat{I}} &= \frac{1}{2} P(dQ > dP) + \frac{1}{2} Q(dP > dQ)\\
+&\ge \sqrt{P(dQ > dP)Q(dP > dQ)}\\
+\implies \frac{1}{n}\log \prob{I \neq \hat{I}} &\ge \frac{1}{2n} \log P(dQ > dP) + \frac{1}{2n} \log Q(dP > dQ)\\
+\label{eq:log-error}
+\end{align}
+Using Arithmetic and Geometric Mean Inequality for the last inequality.\\
+Now we drive an expression using Chernoff-bound for each of the terms \(P(dQ > dP)\) and \(Q(dP > dQ)\):
+\begin{align}
+P(dQ > dP)
+&= P\left[\frac{Q(X^n)}{P(X^n)} > 1\right]\\
+&= P\left[\log \frac{Q(X^n)}{P(X^n)} > 0\right]\\
+&= P\left[\sum_i \log \frac{Q(X_i)}{P(X_i)} > 0\right]
+\end{align}
+Using \eqref{eq:tight-chernoff} and choosing \(\tau = 0\), we get:
+\begin{align}
+\lim_{n \to \infty}-\frac{1}{n}\log P(dQ > dP) &= \sup_{\lambda_1 \ge 0} - \log \EX[P]{e^{\lambda_1 \log \frac{Q(X)}{P(X)}}}\\
+\implies \lim_{n \to \infty} \frac{1}{n}\log P(dQ > dP) &= \inf_{\lambda_1 \ge 0} \log \EX[P]{e^{\lambda_1 \log \frac{Q(X)}{P(X)}}}\\
+&= \inf_{\lambda_1 \ge 0} \log \EX[P]{\left(\frac{Q(X)}{P(X)}\right)^{\lambda_1}}
+\label{eq:RHS1}
+\end{align}
+In a similar way, we can get:
+\begin{align}
+\lim_{n \to \infty}\frac{1}{n}\log Q(dP > dQ) &= \inf_{\lambda_2 \ge 0} \log \EX[Q]{\left(\frac{P(X)}{Q(X)}\right)^{\lambda_2}}
+\label{eq:RHS2}
+\end{align}
+We can easily show that RHSs of \eqref{eq:RHS1} and \eqref{eq:RHS2} are equal:
+\begin{align}
+\inf_{\lambda_1 \ge 0} \log \EX[P]{\left(\frac{Q(X)}{P(X)}\right)^{\lambda_1}} &= \inf_{\lambda_1 \ge 0} \log \EX[Q]{\frac{P(X)}{Q(X)} \left(\frac{Q(X)}{P(X)}\right)^{\lambda_1}} & \text{(change of measure)}\\
+&= \inf_{\lambda_1 \ge 0} \log \EX[Q]{\left(\frac{P(X)}{Q(X)}\right)^{1-\lambda_1}}\\
+&= \inf_{\lambda_2 \le 1} \log \EX[Q]{\left(\frac{P(X)}{Q(X)}\right)^{\lambda_2}} & (\text{change of variable})
+\end{align}
+Therefore, we can write:
+\begin{align}
+\lim_{n \to \infty}\frac{1}{n} \log \prob{I \neq \hat{I}} &\ge \lim_{n \to \infty} \frac{1}{2n} \log P(dQ > dP) + \frac{1}{2n} \log Q(dP > dQ)\\
+&= \frac{1}{2} \inf_{\lambda \le 1} \log \EX[Q]{\left(\frac{P(X)}{Q(X)}\right)^{\lambda}} + \frac{1}{2} \inf_{\lambda \ge 0} \log \EX[Q]{\left(\frac{P(X)}{Q(X)}\right)^{\lambda}}
+\end{align}
+We can show that both terms on the RHS are equal and minimized with a \(\lambda\) between 0 and 1:
+\begin{align}
+\frac{\partial^2}{\partial \lambda^2} \EX[Q]{\left(\frac{P(X)}{Q(X)}\right)^{\lambda}} &= \frac{\partial}{\partial \lambda} \EX[Q]{\log\frac{P(X)}{Q(X)}\left(\frac{P(X)}{Q(X)}\right)^{\lambda}}\\
+&=\EX[Q]{\left(\log\frac{P(X)}{Q(X)}\right)^2\left(\frac{P(X)}{Q(X)}\right)^{\lambda}} \ge 0
+\end{align}
+Thus, the function \(f(\lambda) = \EX[Q]{\left(\frac{P(X)}{Q(X)}\right)^{\lambda}}\) is convex.\\
+Moreover, we have:
+\begin{align}
+f(0) &= \EX[Q]{1} = 1\\
+f(1) &= \EX[Q]{\frac{P(X)}{Q(X)}} = \sum_X P(X) = 1
+\end{align}
+Therefore \(f\) takes values less than or equal to 1 for \(0\le \lambda \le 1\) and larger (or equal) values out of this range.
+So \(f\) is minimized in range \(0\le \lambda \le 1\) and \(\inf_{\lambda} f(\lambda) = \inf_{0\le \lambda \le 1} f(\lambda) = \min_{0\le \lambda \le 1} f(\lambda)\).
+\begin{align}
+\xRightarrow{s = \lambda} \lim_{n \to \infty}\frac{1}{n} \log \prob{I \neq \hat{I}} &\ge \min_{0\le s \le 1} \log \EX[Q]{\left(\frac{P(X)}{Q(X)}\right)^{s}}
+\label{eq:LHS-ge-RHS}
+\end{align}
+Using \eqref{eq:LHS-le-RHS} and \eqref{eq:LHS-ge-RHS} we can see:
+\begin{align}
+    \lim_{n \to \infty}\frac{1}{n} \log \prob{I \neq \hat{I}} = \min_{0\le s \le 1} \log \EX[Q]{\left(\frac{P(X)}{Q(X)}\right)^{s}}
+\end{align}
+Or equivalently:
+\begin{align}
+    -\lim_{n \to \infty}\frac{1}{n} \log \prob{I \neq \hat{I}} = \max_{0\le s \le 1} -\log \EX[Q]{\left(\frac{P(X)}{Q(X)}\right)^{s}}
+\end{align}
+
+\section{Some Properties of Total Variation}
+\subsection{}
+Consider numbers \(a_1, a_2, \ldots, a_n\) and \(b_1, b_2, \ldots, b_n\).\\
+We define numbers \(c_0, c_1, \ldots, c_n\) as:
+\begin{align}
+c_i &= (a_1  \cdots  a_i)(b_{i+1} \cdots b_n) & \text{for } 0 \le i \le n
+\end{align}
+Thus \(c_0\) and \(c_n\) are defined as:
+\begin{align}
+c_0 &= b_1 \cdots b_n\\
+c_n &= a_1 \cdots a_n
+\end{align}
+We have:
+\begin{align}
+c_i - c_{i-1} &= (a_i - b_i)(a_1  \cdots  a_{i-1})(b_{i+1} \cdots b_n)
+\end{align}
+\begin{align}
+\implies a_1 \cdots a_n - b_1 \cdots b_n &= c_n - c_0\\
+&= \sum_{i=1}^n (c_i - c_{i-1})\\
+&= \sum_{i=1}^n (a_i - b_i)(a_1  \cdots  a_{i-1})(b_{i+1} \cdots b_n)\\
+\implies \vert a_1 \cdots a_n - b_1 \cdots b_n \vert & \le  \sum_{i=1}^n \vert a_i - b_i \vert(a_1  \cdots  a_{i-1})(b_{i+1} \cdots b_n)
+\end{align} 
+Using this inequality, we can prove what we want:
+\begin{align}
+d_{TV}(P^{\otimes n}, Q^{\otimes n}) &= \frac{1}{2}\sum_{x_1, \ldots, x_n} \vert P(x_1, \ldots, x_n) - Q(x_1, \ldots, x_n) \vert\\
+& \le \mathlarger{\sum}_{i=1}^n \frac{1}{2} \sum_{x_i} \vert P(x_i) - Q(x_i) \vert \times \sum_{\hat{x}_i}^n \xi_i
+\end{align}
+Where:
+\begin{align}
+\hat{x}_i &= (x_1, \ldots, x_{i-1}, x_{i+1}, \ldots, x_n) & \text{for } 1 \le i \le n
+\end{align}
+and:
+\begin{align}
+\xi_i &= P(x_1) \cdots P(x_{i-1}) Q(x_{i+1}) \cdots Q(x_n)
+\end{align}
+So \(\sum_{\hat{x}_i}^n \xi_i\) is sum over all possible values of product of probability mass functions which is equal to \(1\). So we have:
+\begin{align}
+d_{TV}(P^{\otimes n}, Q^{\otimes n}) &\le \mathlarger{\sum}_{i=1}^n \frac{1}{2}\sum_{x_i} \vert P(x_i) - Q(x_i) \vert\\
+&= \sum_{i=0}^n d_{TV}(P, Q)
+\end{align}
+
+\subsection{}
+\begin{align}
+Y=&g(X)\\
+d_{TV}(P_{Y}, Q_{Y}) = &\frac{1}{2}\sum_{y} \vert P_{Y}(y) - Q_{Y}(y) \vert\\
+= &\frac{1}{2}\sum_{y} \vert P_{X}(g^{-1}(y)) - Q_{X}(g^{-1}(y)) \vert\\
+\xlongequal{x=g^{-1}(y)}& \frac{1}{2}\sum_{x} \vert P_{X}(x) - Q_{X}(x) \vert\\
+=& d_{TV}(P_{X}, Q_{X})
+\end{align}
+\subsection{}
+\begin{align}
+d_{TV}(P_0\otimes Q, P_1\otimes Q) &= \frac{1}{2} \sum_{x, y} \vert P_0(x)Q(y) - P_1(x)Q(y) \vert\\
+&= \frac{1}{2} \sum_{x, y} \vert P_0(x) - P_1(x) \vert Q(y)\\
+&= \frac{1}{2} \sum_{x} \vert P_0(x) - P_1(x) \vert \sum_{y} Q(y)\\
+&= \frac{1}{2} \sum_{x} \vert P_0(x) - P_1(x) \vert\\
+&= d_{TV}(P_0, P_1)
+\end{align}
+\subsection{}
+First we calculate the total variation distance between two gaussian distribution \(\mathcal{N}(0, 1)\) and \(\mathcal{N}(\mu, 1)\) where \(\mu\) is positive:
+\begin{align}
+1 - d_{TV}(\mathcal{N}(0, 1), \mathcal{N}(\mu, 1)) &= \int_{-\infty}^{\infty} \min(\mathcal{N}(0, 1), \mathcal{N}(\mu, 1))\\
+\implies d_{TV}(\mathcal{N}(0, 1), \mathcal{N}(\mu, 1)) &= 1 - \int_{-\infty}^{\infty} \min(\mathcal{N}(0, 1), \mathcal{N}(\mu, 1))\\
+&= 1 - \int_{-\infty}^{\frac{\mu}{2}} \mathcal{N}(\mu, 1) + \int_{\frac{\mu}{2}}^{\infty} \mathcal{N}(0, 1)\\
+&= 1 - 2 \int_{\frac{\mu}{2}}^{\infty} \mathcal{N}(0, 1)\\
+&= 1 - 2 \int_{\frac{\mu}{2}}^{\infty} \frac{1}{\sqrt{2\pi}} e^{-\frac{x^2}{2}}\\
+&= 1 - 2 \Phi(\frac{\mu}{2})
+\end{align}
+Now we generalize what we proved for two multivariate gaussian distributions \(X\sim \mathcal{N}(0, \Sigma)\) and \(Y\sim \mathcal{N}(\theta, \Sigma)\).\\
+We know that if \(X\) is a multivariate gaussian, then \(AX + b\) is a gaussian distribution too (where \(A\) is a matrix and \(b\) is a vector).
+We also know that \(\Sigma\) is a positive definite matrix.
+So we can diagonalize it as:
+\begin{align}
+\Sigma = S \Lambda S^{-1}
+\end{align}
+By defining \(W\triangleq \Lambda^{-1/2} S\transpose\), we find mean and covariance of new gaussian distributions \(WX\) and \(WY\):
+\begin{align}
+\Cov{X} &= \EX{XX\transpose} - \EX{X}\EX{X}\transpose = \Sigma\\
+\Cov{Y} &= \EX{YY\transpose} - \EX{Y}\EX{Y}\transpose = \Sigma\\
+\EX{WX} &= W\EX{X} = 0\\
+\EX{WY} &= W\EX{Y} = W\theta\\
+\Cov{WX} &= \EX{WX (WX)\transpose} - \EX{WX}\EX{WX}\transpose\\
+&= W\EX{XX\transpose}W\transpose - W\EX{X}\EX{X}\transpose W\transpose\\
+&= W\Sigma W\transpose\\
+&= \Lambda^{-1/2} S\transpose S \Lambda S\transpose \Lambda^{-1/2}\\
+&= \Lambda^{-1/2} \Lambda \Lambda^{-1/2}\\
+&= I\\
+\xrightarrow{\text{similarly}} \Cov{WY} &= I
+\end{align}
+Now we want to convert them to gaussian distribution where all elements of their mean vector except the first one is zero.
+So we define \(Q\) as orthonormal matrix achieved by doing QR decomposition on the matrix \(\left[ W\theta\ |\ I \right]\) (I got this idea from Kasra Khoshjoo):
+\begin{align}
+\EX{QWX} &= QW\EX{X} = 0\\
+\EX{QWY} &= QW\EX{Y} = QW\theta = \norm{QW\theta}q_1\\
+\Cov{QWX} &= Q \Cov{WX} Q\transpose = I\\
+\Cov{QWY} &= Q \Cov{WY} Q\transpose = I
+\end{align}
+Where \(q_1\) is the first column of \(Q\).\\
+By defining \(g(X) = QWX\), we can calculate the total variation distance between \(X\) and \(Y\) as follow:
+\begin{align}
+d_{TV}(X, Y) \xlongequal{\text{part 2}}& d_{TV}(QWX, QWY)\\
+=& d_{TV}(\mathcal{N}(0, I), \mathcal{N}(\norm{QW\theta}q_1, I))\\
+=& d_{TV}(\mathcal{N}(0, 1)\otimes \mathcal{N}(0_{n-1}, I_{n-1}), \mathcal{N}(\norm{QW\theta}, 1)\otimes \mathcal{N}(0_{n-1}, I_{n-1}))\\
+\xlongequal{\text{part 3}}& d_{TV}(\mathcal{N}(0, 1), \mathcal{N}(\norm{QW\theta}, 1))\\
+=& 1 - 2\Phi(\frac{\norm{QW\theta}}{2})
+\end{align}
+The idea behind this part was introducing a new basis for \(\mathbb{R}^n\) which was columns of \(Q\) and calculate the total variation distance between two multivariate gaussian distributions in this new basis.
+
+\section{Bayesian Approach and Properties of \(\mathcal{R}(P, Q)\)}
+\subsection{}
+We use Maximum Likelihood approach to find \(\tau\).
+\begin{align}
+E &= \pi_0 P(Z=1) + \pi_1 Q(Z=0)\\
+&= \pi_0 - \pi_0 P(Z=0) + \pi_1 Q(Z=1)\\
+&= \sum_x \pi_0 + (-\pi_0 P(x) + \pi_1 Q(x))Z(0|x)
+\end{align}
+Where \(E\) is error value.\\
+We want to maximize the above expression with respect to \(Z\).
+We have:
+\begin{equation}
+\begin{cases}
+-\pi_0 P(x) + \pi_1 Q(x) < 0 \equiv \frac{P(x)}{Q(x)} > \frac{\pi_1}{\pi_0} \rightarrow Z(0|x) = 0\\
+-\pi_0 P(x) + \pi_1 Q(x) \ge 0 \equiv \frac{P(x)}{Q(x)} \le \frac{\pi_1}{\pi_0} \rightarrow Z(0|x) = 1
+\end{cases}
+\end{equation}
+So \(\tau = \frac{\pi_1}{\pi_0}\).
+\subsection{}
+We know that \(\beta_\alpha = \alpha^2\). Hence the point \((\alpha, \alpha^2)\) lies on the lower curve of \(\mathcal{R}\).
+And we know that minimum value of error is achieved for one of points on the lower curve.
+So we find the point with minimum error value on the lower by setting derivative of error with respect to \(\alpha\) to zero.
+\begin{align}
+E &= \pi_0P(Z=1) + \pi_1 Q(Z=0)\\
+E \text{ on lower curve } &= \pi_0 (1-\alpha) + \pi_1 \beta_\alpha\\
+&= \pi_0 (1-\alpha) + \pi_1 \alpha^2\\
+\xRightarrow{\text{setting derivative to zero}}& - \pi_0 + 2\pi_1 \alpha = 0\\
+\alpha &= \frac{\pi_0}{2\pi_1}
+\end{align}
+
+\subsection{}
+\(\alpha\) is a probability value. So it is always between \(0\) and \(1\).
+\begin{gather}
+0 \le \frac{\pi_0}{2\pi_1} \le 1\\
+\pi_0 \le 2\pi_1 = 2 - 2\pi_0\\
+\pi_0 \le \frac{2}{3}
+\end{gather}
+Note that  if \(\pi_0 > \frac{2}{3}\), then \(\pi_0 (1-\alpha) + \pi_1 \beta_\alpha\) has no critical point and the minimum must be on one of the border points (e.g. \(\alpha = 0 \text{ or } \alpha = 1\)).
+In this case, \(\alpha = 1\) yields a smaller error value than \(\alpha = 0\).
+
+\section{Achievable Rates}
+\subsection{To Do}
+\subsection{To Do}
+\subsection{To Do}
+\subsection{To Do}
+\subsection{To Do}
+
+
+\end{document}
