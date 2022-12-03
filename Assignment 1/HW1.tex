@@ -7,6 +7,7 @@
 \usepackage{extarrows}
 \usepackage{relsize}
 \usepackage{geometry}
+\usepackage{multicol}
 
 \numberwithin{equation}{section}
 
@@ -23,7 +24,8 @@
 \newcommand{\at}[2][]{#1|_{#2}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
-\DeclareMathOperator*{\Cov}{Cov}
+\DeclareMathOperator*{\covariance}{Cov}
+\newcommand{\Cov}[1]{\covariance\left(#1\right)}
 
 \title{Information Theory, Statistics, and Learning\\Assignment 1}
 \author{Ali Abbasi\\ 98105879}
@@ -268,6 +270,7 @@ Now we need to show that LHS \(\ge\) RHS.
 
 We proved Chernoff inequality both in the class and in \eqref{eq:chenoff-bound}:
 \begin{align}
+\label{eq:chernoff}
 P\left[ \sum_i X_i \ge n\delta \right] \le \exp \left( -n \{\sup_{\lambda \ge 0} \lambda\delta - \psi_X(\lambda) \} \right)
 \end{align}
 Where \(\psi_X(\lambda) = \log \EX{e^{\lambda X}}\) is the logarithm of the moment generating function of \(X\).\\
@@ -492,11 +495,90 @@ Note that  if \(\pi_0 > \frac{2}{3}\), then \(\pi_0 (1-\alpha) + \pi_1 \beta_\al
 In this case, \(\alpha = 1\) yields a smaller error value than \(\alpha = 0\).
 
 \section{Achievable Rates}
-\subsection{To Do}
-\subsection{To Do}
-\subsection{To Do}
-\subsection{To Do}
-\subsection{To Do}
+\subsection{}
+We will show that \(e^{-nE_0}, e^{-nE_1}\) region (we denote that with \(\mathcal{R}\)) is a convex region.
+\begin{align}
+(x1, y1), (x2, y2) \in \mathcal{R} \xrightarrow{?} \Big(\lambda x1 + (1-\lambda)x2, \lambda y1 + (1-\lambda)y2\Big) \in \mathcal{R}
+\end{align}
+If we have test1 which achieves errors \(x1, y1\) and test2 which achieves errors \(x2, y2\), then we can introduce a new test which is as follows:\\
+We toss a coin with probability \(\lambda\) (a Bernoulli experiment) and if it is head, we use test1 and if it is tail, we use test2.
+So the type one and type two errors of this new test are \(\lambda x1 + (1-\lambda)x2\) and \( \lambda y1 + (1-\lambda)y2\) respectively.
+So the point \(\Big(\lambda x1 + (1-\lambda)x2, \lambda y1 + (1-\lambda)y2\Big)\) is in \(\mathcal{R}\) and we have shown that \(\mathcal{R}\) is a convex region.
+
+\subsection{}
+
+(Note: I am using \(-D(Q||P) \le \theta \le D(P||Q)\) which is different from what the problem says. Because this is needed for the proof.
+Moreover, if \(X\sim P\) then \(\sum_i \log \frac{P(X_i)}{Q(X_i)} \to nD(P||Q)\) and if \(X\sim Q\) then \(\sum_i \log \frac{Q(X_i)}{P(X_i)} \to -nD(Q||P)\).
+Thus choosing \(\tau = n\theta\) between \(-nD(Q||P)\) and \(nD(P||Q)\) seems a good choice intuitively!)\\
+Again, using Chernoff bound (see \eqref{eq:chernoff}) we have:
+\begin{align}
+\pi_{1|0} =& P(Z=1) \\
+=& P\left( \log \frac{P(X^n)}{Q(X^n)} < n\theta \right)\\
+=& P\left( \sum_{i=1}^n \log \frac{P(X_i)}{Q(X_i)} < n\theta \right)\\
+=& P\left( \lambda \sum_{i=1}^n \log \frac{P(X_i)}{Q(X_i)} > \lambda n\theta \right) & (\lambda < 0)\\
+\le& \exp (-n \{\sup_{\lambda < 0} \lambda \theta - \log \EX[P]{e^{\lambda \log \frac{P(X)}{Q(X)}}}\})\\
+=& \exp (-n \{\sup_{\lambda < 0} \lambda \theta - \log \phi_P(\lambda)\})\\
+=& \exp(-n \phi_P^*(\theta))
+\end{align}
+Similarly for \(\pi_{0|1}\):
+\begin{align}
+\pi_{0|1} &= Q(Z=0) \\
+&= Q\left( \log \frac{P(X^n)}{Q(X^n)} > n\theta \right)\\
+&= Q\left( \sum_{i=1}^n \log \frac{P(X_i)}{Q(X_i)} > n\theta \right)\\
+&= Q\left( \lambda \sum_{i=1}^n \log \frac{P(X_i)}{Q(X_i)} > \lambda n\theta \right) & (\lambda > 0)\\
+&\le \exp (-n \{\sup_{\lambda > 0} \lambda \theta - \log \EX[Q]{e^{\lambda \log \frac{P(X)}{Q(X)}}}\})\\
+&= \exp (-n \{\sup_{\lambda > 0} \lambda \theta - \log \phi_Q(\lambda)\})\\
+&= \exp(-n \phi_Q^*(\theta))
+\end{align}
+Note that the supremum is taken over \(\lambda < 0\) and \(\lambda > 0\) respectively, instead of \(\lambda \in \mathbb{R}\) which is in the problem statement.
+We will show that they are equivalent with the problem statements since their supremum occurs at \(\lambda < 0\) and \(\lambda > 0\) respectively.\\
+Defining \(f(\lambda) = \lambda \theta - \log \phi_P(\lambda)\), we have:
+\begin{align}
+f(\lambda) &= \lambda \theta - \log \EX[P]{e^{\lambda \log \frac{P(X)}{Q(X)}}}\\
+&= \lambda \theta - \log \EX[P]{{\left(\frac{P(X)}{Q(X)}\right)}^\lambda}
+\end{align}
+We will show that \(f(\lambda)\) takes its maximum in the range \([-1, 0]\).
+\begin{align}
+f'(\lambda) &= \theta - \frac{1}{\EX[P]{{\left(\frac{P(X)}{Q(X)}\right)}^\lambda}} \EX[P]{\log \frac{P(X)}{Q(X)} {\left(\frac{P(X)}{Q(X)}\right)}^{\lambda}}\\
+f''(\lambda) &= -\frac{\EX[P]{\left(\log \frac{P(X)}{Q(X)}\right)^2 {\left(\frac{P(X)}{Q(X)}\right)}^{\lambda}}\EX[P]{{\left(\frac{P(X)}{Q(X)}\right)}^\lambda} - \EX[P]{\log \frac{P(X)}{Q(X)} {\left(\frac{P(X)}{Q(X)}\right)}^{\lambda}}^2}{\EX[P]{{\left(\frac{P(X)}{Q(X)}\right)}^\lambda}^2}
+\end{align}
+Using Cauchy-Schwarz inequality, we have:
+\begin{align}
+\EX[P]{\left(\log \frac{P(X)}{Q(X)}\right)^2 {\left(\frac{P(X)}{Q(X)}\right)}^{\lambda}}\EX[P]{{\left(\frac{P(X)}{Q(X)}\right)}^\lambda} \ge \EX[P]{\log \frac{P(X)}{Q(X)} {\left(\frac{P(X)}{Q(X)}\right)}^{\lambda}}^2
+\end{align}
+So \(f''(\lambda) \le 0\) for all \(\lambda \in \mathbb{R}\) and \(f\) is a concave function.
+Moreover:
+\begin{align}
+f'(0) &= \theta - \frac{1}{1}\EX[P]{\log \frac{P(X)}{Q(X)}}\\
+&= \theta - D(P||Q) \le 0
+\end{align}
+\begin{align}
+f'(-1) &= \theta - \frac{1}{\EX[P]{\frac{Q(X)}{P(X)}}} \EX[P]{\log \frac{P(X)}{Q(X)} \frac{Q(X)}{P(X)}}\\
+&= \theta - \frac{1}{1}\EX[Q]{\log \frac{P(X)}{Q(X)} }\\
+&= \theta + D(Q||P) \ge 0
+\end{align}
+\begin{equation*}
+\xRightarrow{f \text{ is concave, }f'(0) \ge 0 \text{ and }f'(-1) \le 0}
+f \text{ takes its maximum in range }[-1, 0] 
+\end{equation*}
+So we have: \(\sup_{\lambda < 0} f(\lambda) = \sup_{\lambda \in [-1, 0]} f(\lambda) = \sup_{\lambda \in \mathbb{R}} f(\lambda)\).
+The same argument can be applied to \(\phi_Q^*(\theta) = \sup_{\lambda \in \mathbb{R}}\lambda \theta - \log \phi_Q(\lambda)\) to show that it takes its maximum in range \([0, 1]\).
+
+\subsection{}
+In the previous section, we showed that the pair of \( \phi_P^*(\theta)\) and \( \phi_Q^*(\theta)\) rates are achievable.
+Now we will show that \(\phi_Q^*(\theta)\) is equal to \(\phi_P^*(\theta) + \theta\).
+\begin{align}
+\phi_Q^*(\theta) &= \sup_{\lambda \in \mathbb{R}}\lambda \theta - \log \phi_Q(\lambda)\\
+&= \sup_{\lambda \in \mathbb{R}}\lambda \theta - \log \EX[Q]{\left(\frac{P(X)}{Q(X)}\right)^\lambda}\\
+&= \sup_{\lambda \in \mathbb{R}}\lambda \theta - \log \EX[P]{\frac{Q(X)}{P(X)}\left(\frac{P(X)}{Q(X)}\right)^\lambda} & \text{(change of measure)}\\
+&= \sup_{\lambda \in \mathbb{R}}\lambda \theta - \log \EX[P]{\left(\frac{P(X)}{Q(X)}\right)^{\lambda - 1}}\\
+\xrightarrow[]{\lambda' = \lambda - 1}&= \sup_{\lambda' \in \mathbb{R}} (\lambda' + 1) \theta - \log \EX[P]{\left(\frac{P(X)}{Q(X)}\right)^{\lambda'}}\\
+&= \theta + \sup_{\lambda' \in \mathbb{R}} \lambda' \theta - \log \EX[P]{\left(\frac{P(X)}{Q(X)}\right)^{\lambda'}}\\
+&= \theta + \phi_P^*(\theta)
+\end{align}
+
+\subsection{}
+\subsection{}
 
 
 \end{document}
