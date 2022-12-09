@@ -8,6 +8,7 @@
 \usepackage{relsize}
 \usepackage{geometry}
 \usepackage{multicol}
+\usepackage[]{color}
 
 \numberwithin{equation}{section}
 
@@ -387,6 +388,7 @@ So \(\sum_{\hat{x}_i}^n \xi_i\) is sum over all possible values of product of pr
 d_{TV}(P^{\otimes n}, Q^{\otimes n}) &\le \mathlarger{\sum}_{i=1}^n \frac{1}{2}\sum_{x_i} \vert P(x_i) - Q(x_i) \vert\\
 &= \sum_{i=0}^n d_{TV}(P, Q)
 \end{align}
+{\color{blue}\href{https://math.stackexchange.com/questions/72315/total-variation-inequality-for-the-product-measure}{Solution's Credit}}
 
 \subsection{}
 \begin{align}
@@ -507,9 +509,10 @@ So the point \(\Big(\lambda x1 + (1-\lambda)x2, \lambda y1 + (1-\lambda)y2\Big)\
 
 \subsection{}
 
-(Note: I am using \(-D(Q||P) \le \theta \le D(P||Q)\) which is different from what the problem says. Because this is needed for the proof.
-Moreover, if \(X\sim P\) then \(\sum_i \log \frac{P(X_i)}{Q(X_i)} \to nD(P||Q)\) and if \(X\sim Q\) then \(\sum_i \log \frac{Q(X_i)}{P(X_i)} \to -nD(Q||P)\).
-Thus choosing \(\tau = n\theta\) between \(-nD(Q||P)\) and \(nD(P||Q)\) seems a good choice intuitively!)\\
+(Note: I am using \(-D(Q||P) \le \theta \le D(P||Q)\) which is different from what the problem says.
+This is necessary for the proof.
+Moreover, if \(X\sim P\) then \(\sum_i \log \frac{P(X_i)}{Q(X_i)} \to nD(P||Q)\) and if \(X\sim Q\) then \(\sum_i \log \frac{P(X_i)}{Q(X_i)} \to -nD(Q||P)\).
+Thus choosing \(\tau = n\theta\) between \(-nD(Q||P)\) and \(nD(P||Q)\) seems a logical choice intuitively!)\\
 Again, using Chernoff bound (see \eqref{eq:chernoff}) we have:
 \begin{align}
 \pi_{1|0} =& P(Z=1) \\
@@ -578,7 +581,26 @@ Now we will show that \(\phi_Q^*(\theta)\) is equal to \(\phi_P^*(\theta) + \the
 \end{align}
 
 \subsection{}
+We know that Chernoff bound is tight as \(n\to \infty\).
+So we can't find a better rate for the given theta and \(E_0(\theta) = \phi_P^*(\theta), \ E_1(\theta) = \phi_P^*(\theta) + \theta\) are border of \(\mathcal{R}\) for different \(\theta\)s.
 \subsection{}
-
+The optimal rate is achieved on the border.
+So we have:
+\begin{gather}
+\pi_0 e^{-n\phi_P^*(\theta)} + \pi_1 e^{-n(\phi_P^*(\theta) + \theta)} \le e^{-nE}\\
+\end{gather}
+\begin{align}
+\implies E &\le -\frac{1}{n}\log \left(\pi_0 e^{-n\phi_P^*(\theta)} + \pi_1 e^{-n(\phi_P^*(\theta) + \theta)}\right)\\
+\xrightarrow[]{-\log \text{ is convex}} &\le \pi_0 \times -\frac{1}{n}\log e^{-n\phi_P^*(\theta)} + \pi_1 \times -\frac{1}{n}\log e^{-n(\phi_P^*(\theta) + \theta)}\\
+&= \pi_0 \phi_P^*(\theta) + \pi_1 (\phi_P^*(\theta) + \theta)\\
+&= \phi_P^*(\theta) + \pi_1 \theta
+\end{align}
+We need to find a rate for all values of \(\theta\).
+So:
+\begin{align}
+E \le \min_\theta \phi_P^*(\theta) + \pi_1 \theta
+\end{align}
+Clearly, \(E \le \phi_P^*(\theta) + \pi_1 \theta\at{\theta=0}=\phi_P^*(0)\).
+Now we need to show that \(\phi_P^*(0)\) is the optimal rate (which I couldn't!).
 
 \end{document}
