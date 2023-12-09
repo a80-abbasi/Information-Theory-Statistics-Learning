@@ -1,0 +1,53 @@
+\documentclass{beamer}
+%
+% Choose how your presentation looks.
+%
+% For more themes, color themes and font themes, see:
+% http://deic.uab.es/~iblanes/beamer_gallery/index_by_theme.html
+%
+\mode<presentation>
+{
+  \usetheme{CambridgeUS}      % or try Darmstadt, Madrid, Warsaw, ... CambridgeUS
+  \usecolortheme{seahorse} % or try albatross, beaver, crane, ...
+  \usefonttheme{serif}  % or try serif, structurebold, ...
+  % \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+  % \addtobeamertemplate{navigation symbols}{}{%
+  %   \usebeamerfont{footline}%
+  %   \usebeamercolor[fg]{footline}%
+  %   \hspace{1em}%
+  %   \insertframenumber/\inserttotalframenumber
+% }
+} 
+
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\input{setting.tex}
+
+\title[Virtual Adversarial Training]{Virtual Adversarial Training: A Regularization Method for Supervised and Semi-Supervised Learning}
+\author{Ali Abbasi}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\vspace{-0.8 in}
+\begin{center}
+Information Theory, Statatistics, and Learning\\
+Prof. Yassaee\\
+{\small Sharif University of Technology}
+\end{center}
+\end{frame}
+
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+
+
+\input{part1.tex}
+\input{part2.tex}
+\input{references.tex}
+\input{appendix.tex}
+
+\end{document}

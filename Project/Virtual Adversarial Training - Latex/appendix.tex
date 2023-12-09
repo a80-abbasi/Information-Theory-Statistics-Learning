@@ -1,0 +1,17 @@
+\section{Appendix}
+\label{sec:appendix}
+
+\begin{frame}
+    \frametitle{Power Method}
+
+We want to find the dominant eigenvector of the matrix \(A\) with eigenvectors \(v_1, v_2, \ldots, v_n\) sorted in descending order of their eigenvalues.\\
+We will show that the iterative method \(d_{t+1} = A d_t
+\) will converge to a multiple of the dominant eigenvector \(v_1\) provided that \(d_0\) is not orthogonal to \(v_1\).\\
+\begin{align*}
+\text{Suppose } d_0 &= c_1 v_1 + c_2 v_2 + \cdots + c_n v_n\\
+\implies d_k &= Ad_{k-1} = A^k d_0 = A^k (c_1 v_1 + A^k c_2 v_2 + \cdots + A^k c_n v_n)\\
+&= \lambda_1^k c_1 v_1 + \lambda_2^k c_2 v_2 + \cdots + \lambda_n^k c_n v_n\\
+&= \lambda_1^k (c_1 v_1 + \left(\frac{\lambda_2}{\lambda_1}\right)^k c_2 v_2 + \cdots + \left(\frac{\lambda_n}{\lambda_1}\right)^k c_n v_n)\\
+&\xrightarrow[]{k \to \infty} \lambda_1^k c_1 v_1
+\end{align*}
+\end{frame}
